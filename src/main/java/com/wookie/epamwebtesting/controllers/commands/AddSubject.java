@@ -14,12 +14,21 @@ import javax.servlet.http.HttpServletResponse;
 
 
 public class AddSubject implements Command {
-
     SubjectService subjectService = SubjectService.getInstance();
-
+    
+    /**
+    * Command class. Handles adminpage.jsp. 
+    * Method call subject's service to add subject in database. 
+    * @param request
+    * @param response
+    * @return null because of using a redirection.
+    * @throws ServletException
+    * @throws IOException
+    * @throws RuntimeException if some mistake in model arises. 
+    */
     @Override
     public String execute(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException, RuntimeException {
-        String subjectName = request.getParameter("subjectname");
+        String subjectName = request.getParameter(Constants.PROPERTY_SUBJECT_NAME);
 
         subjectService.addSubject(subjectName);
 

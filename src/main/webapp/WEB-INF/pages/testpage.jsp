@@ -1,8 +1,10 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
 	pageEncoding="UTF-8"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
-
+<fmt:setLocale value="${language}" />
+<fmt:setBundle basename="bundles.bundle" />
 <!DOCTYPE html>
+
 <html>
     <head>
         <style type="text/css">
@@ -25,6 +27,7 @@
             <div class ="row">
                 <form action = "./Controller" method="POST">
                     <input type="hidden" name="command" value="SHOW_RESULT" />
+                    <input type="hidden" name="testId" value="${testId}" />
                     <div class ="col-md-10 col-md-offset-1 col-lg-8 col-lg-offset-2">
                         <c:forEach var="item" items="${test.tasks}">         
                             <input type="hidden" name="question_id" value="${item.id}" />

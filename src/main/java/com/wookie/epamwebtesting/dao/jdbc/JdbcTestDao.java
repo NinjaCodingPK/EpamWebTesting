@@ -14,9 +14,11 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.apache.logging.log4j.*;
 
 
-public class JdbcTestDao implements TestDao {
+public class JdbcTestDao extends JdbcConnectorDao implements TestDao {
+    private static final Logger logger = LogManager.getLogger(JdbcTestDao.class);
     public static final String CREATE_STATEMENT =
             "INSERT INTO Test (tutor, subject) VALUES (?, ?);";
     public static final String UPDATE_STATEMENT =
@@ -33,7 +35,6 @@ public class JdbcTestDao implements TestDao {
             "Select Test.id, Test.tutor, Test.subject from\n" +
                     "Test, Subject\n" +
                     "where \n" +
-                    //"(User.id = Test.tutor) and\n" +
                     "(Test.subject = ?) and\n" +
                     "(Subject.id = Test.subject) \n" +
                     "group by Test.id;";
@@ -44,14 +45,23 @@ public class JdbcTestDao implements TestDao {
                     "(User.id = Test.tutor) and\n" +
                     "(Test.tutor = ?) \n" +
                     "group by Test.id;";
-//    public static final String FIND_TASKS_STATEMENT = 
-//            "SELECT taskId FROM TestTasks WHERE testId=?;";
-    
 
+    public static final String COLUMN_ID = "id";
+    public static final String COLUMN_SUBJECT = "subject";
+    public static final String COLUMN_TUTOR = "tutor";
+    
+    private Test getResult(ResultSet rs) throws SQLException {
+        return new TestBuilder()
+                        .setId(rs.getInt(COLUMN_ID))
+                        .setSubject(new SubjectBuilder().setId(rs.getInt(COLUMN_SUBJECT)).build())
+                        .setTutor(new UserBuilder().setId(rs.getInt(COLUMN_TUTOR)).build())
+                        .build();
+    }
+    
     @Override
     public Test create(Test test) {
-        try (Connection cn = JdbcDaoFactory.getConnection()) {
-            PreparedStatement preparedStatement = cn.prepareStatement(CREATE_STATEMENT,  Statement.RETURN_GENERATED_KEYS);
+        try (Connection cn = getConnection()) {
+            PreparedStatement preparedStatement = cn.prepareStatement(CREATE_STATEMENT, Statement.RETURN_GENERATED_KEYS);
             preparedStatement.setInt(1, test.getTutor().getId());
             preparedStatement.setInt(2, test.getSubject().getId());
             preparedStatement.executeUpdate();
@@ -64,7 +74,7 @@ public class JdbcTestDao implements TestDao {
             
             return test;
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Error while processing database " + logger.getName());
             throw new RuntimeException(e);
         }
     }
@@ -72,7 +82,7 @@ public class JdbcTestDao implements TestDao {
     
     @Override
     public boolean update(Test test) {
-        try (Connection cn = JdbcDaoFactory.getConnection()) {
+        try (Connection cn = getConnection()) {
             PreparedStatement preparedStatement = cn.prepareStatement(UPDATE_STATEMENT);
             preparedStatement.setInt(1, test.getTutor().getId());
             preparedStatement.setInt(2, test.getSubject().getId());
@@ -81,14 +91,14 @@ public class JdbcTestDao implements TestDao {
             preparedStatement.close();
             return true;
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Error while processing database " + logger.getName());
             return false;
         }
     }
 
     @Override
     public boolean delete(int id) {
-        try (Connection cn = JdbcDaoFactory.getConnection()) {
+        try (Connection cn = getConnection()) {
             PreparedStatement preparedStatement = cn.prepareStatement(DELETE_ENTRIES_STATEMENT);
             preparedStatement.setInt(1, id);
             preparedStatement.executeUpdate();
@@ -100,30 +110,26 @@ public class JdbcTestDao implements TestDao {
             preparedStatement.close();
             return true;
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Error while processing database " + logger.getName());
             return false;
         }
     }
 
     @Override
     public Test findById(int id) {
-        try (Connection cn = JdbcDaoFactory.getConnection()) {
+        try (Connection cn = getConnection()) {
             PreparedStatement preparedStatement = cn.prepareStatement(FIND_BY_ID_STATEMENT);
             preparedStatement.setInt(1, id);
             ResultSet rs = preparedStatement.executeQuery();
 
             Test temp = null;
             if(rs.next()) {
-                temp = new TestBuilder()
-                        .setId(rs.getInt("id"))
-                        .setSubject(new SubjectBuilder().setId(rs.getInt("subject")).build())
-                        .setTutor(new UserBuilder().setId(rs.getInt("tutor")).build())
-                        .build();
+                temp = getResult(rs);
             }
             preparedStatement.close();
             return temp;
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Error while processing database " + logger.getName());
             throw new RuntimeException(e);
         }
     }
@@ -131,95 +137,54 @@ public class JdbcTestDao implements TestDao {
     // Don't need this.
     @Override
     public Set<Test> findAll() {
-        try (Connection cn = JdbcDaoFactory.getConnection()) {
+        try (Connection cn = getConnection()) {
             Statement query = cn.createStatement();
             ResultSet rs = query.executeQuery(FIND_ALL_STATEMENT);
             Set<Test> res = new HashSet<>();
             while (rs.next()) {
-                res.add(new TestBuilder()
-                        .setId(rs.getInt("id"))
-                        .setSubject(new SubjectBuilder().setId(rs.getInt("subject")).build())
-                        .setTutor(new UserBuilder().setId(rs.getInt("tutor")).build())
-                        .build());
+                res.add(getResult(rs));
             }
             query.close();
             return res;
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Error while processing database " + logger.getName());
             throw new RuntimeException(e);
         }
     }
 
     @Override
     public Set<Test> findBySubject(int subjectId) {
-        try (Connection cn = JdbcDaoFactory.getConnection()) {
+        try (Connection cn = getConnection()) {
             PreparedStatement preparedStatement = cn.prepareStatement(FIND_BY_SUBJECT_STATEMENT);
             preparedStatement.setInt(1, subjectId);
             ResultSet rs = preparedStatement.executeQuery();
             Set<Test> res = new HashSet<>();
             while (rs.next()) {
-                res.add(new TestBuilder()
-                        .setId(rs.getInt("id"))
-                        //Don't sure it is OK.
-                        .setSubject(new SubjectBuilder().setId(rs.getInt("subject")).build())
-                        .setTutor(new UserBuilder().setId(rs.getInt("tutor")).build())
-                        //.setTasks(this.getTasks(rs.getInt("id")))
-                        .build());
+                res.add(getResult(rs));
             }
             preparedStatement.close();
             return res;
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Error while processing database " + logger.getName());
             throw new RuntimeException(e);
         }
     }
     
     public Set<Test> findByUser(int userId) {
-        try (Connection cn = JdbcDaoFactory.getConnection()) {
+        try (Connection cn = getConnection()) {
             PreparedStatement preparedStatement = cn.prepareStatement(FIND_BY_USER_STATEMENT);
             preparedStatement.setInt(1, userId);
             ResultSet rs = preparedStatement.executeQuery();
             Set<Test> res = new HashSet<>();
             while (rs.next()) {
-                res.add(new TestBuilder()
-                        .setId(rs.getInt("id"))
-                        //Don't sure it is OK.
-                        .setSubject(new SubjectBuilder().setId(rs.getInt("subject")).build())
-                        .setTutor(new UserBuilder().setId(rs.getInt("tutor")).build())
-                        //.setTasks(this.getTasks(rs.getInt("id")))
-                        .build());
+                res.add(getResult(rs));
             }
             preparedStatement.close();
             return res;
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Error while processing database " + logger.getName());
             throw new RuntimeException(e);
         }
     }
     
-    /**
-     * Method returns list of tasks which are connected with specified test. 
-     * (Should be move to the "service" level)
-     * @param testId specified test's ID.
-     * @return list of "Task" object. 
-     */
-//    private Set<Task> getTasks(int testId) {
-//        TaskDao taskDao = new JdbcDaoFactory().createTaskDao();
-//        Set<Task> tasks = new HashSet<>();
-//        
-//        try (Connection cn = JdbcDaoFactory.getConnection()) {
-//            PreparedStatement preparedStatement = cn.prepareStatement(FIND_TASKS_STATEMENT);
-//     
-//            preparedStatement.setInt(1, testId);
-//            ResultSet rs = preparedStatement.executeQuery();
-//            while (rs.next()) {
-//                tasks.add(taskDao.findById(rs.getInt("taskId")));
-//            }
-//        } catch (SQLException e) {
-//            e.printStackTrace();
-//            throw new RuntimeException(e);
-//        }
-//        
-//        return tasks;
-//    }
 }

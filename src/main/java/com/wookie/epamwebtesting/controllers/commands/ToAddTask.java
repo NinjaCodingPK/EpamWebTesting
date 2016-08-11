@@ -16,12 +16,24 @@ import javax.servlet.http.HttpSession;
 
 public class ToAddTask implements Command {
 
+    /**
+     * Command class. Handles tutorpage.jsp page. 
+     * Method forms a empty data for sending it into addtask jsp page.
+     * It's necessary because "update task" and "create task" methods
+     * are handled by the same jsp page.
+     * @param request
+     * @param response
+     * @return name of page for forwarding.
+     * @throws ServletException
+     * @throws IOException
+     * @throws RuntimeException if some mistake in model arises. 
+     */
     @Override
     public String execute(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException, RuntimeException {
-        request.setAttribute("task", new Task());
-        request.setAttribute("answers", new String[4]);
+        request.setAttribute(Constants.ATTRIBUTE_TASK, new Task());  
+        request.setAttribute(Constants.ATTRIBUTE_ANSWERS, new String[4]);
 
-        int id = Integer.parseInt(request.getParameter("taskId"));
+        int id = Integer.parseInt(request.getParameter(Constants.PROPERTY_TASK_ID));
         HttpSession session = request.getSession();
         session.setAttribute(Constants.TEST_UPDATE_SESSION_ATTRIBUTE, id);
 

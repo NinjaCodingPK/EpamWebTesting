@@ -11,7 +11,20 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 
+/**
+ * Class implements command pattern. 
+ */
 public interface Command {
 
-    String execute(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException, RuntimeException, Exception;
+    /**
+     * Method executes a chosen command.
+     * @param request
+     * @param response
+     * @return name of page or null if redirection takes place.
+     * @throws ServletException
+     * @throws IOException
+     * @throws RuntimeException if some problem in model appears.
+     */
+    String execute(HttpServletRequest request, HttpServletResponse response) 
+            throws ServletException, IOException, RuntimeException;
 }

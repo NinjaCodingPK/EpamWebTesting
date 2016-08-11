@@ -9,11 +9,13 @@ import com.wookie.epamwebtesting.dao.AnswerDao;
 import com.wookie.epamwebtesting.dao.DaoFactory;
 import com.wookie.epamwebtesting.dao.TaskAnswersDao;
 import com.wookie.epamwebtesting.entities.Answer;
-import com.wookie.epamwebtesting.entities.TaskAnswers;
 import com.wookie.epamwebtesting.entities.builder.TaskAnswersBuilder;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 
 public class AnswerService {
+    private static final Logger logger = LogManager.getLogger(AnswerService.class);
     private TaskAnswersDao taskAnswersDao = DaoFactory.getFactory().createTaskAnswersDao();
     private AnswerDao answerDao = DaoFactory.getFactory().createAnswerDao();
     
@@ -23,29 +25,30 @@ public class AnswerService {
         return instance;
     }
     
+    /**
+     * Add an answer in database if such answer haven't already exist.
+     * @param answer Answer instance.
+     * @throws RuntimeException if some trouble with database appears. 
+     */
     private Answer createAnswer(Answer answer) throws RuntimeException {
         Answer temp = answerDao.getByText(answer.getText());
         if(temp == null) {
             temp = answerDao.create(answer);
-            //temp = answerDao.getByText(answer.getText());
         }
         
         return temp;
     }
     
-//    public Answer updateAnswer(Answer answer) {
-//        if(taskAnswersDao.findByAnswerId(answer.getId()).size() > 1) {
-//            return createAnswer(answer);
-//        }
-//        else {
-//            return null; 
-//        }
-//        
-//    }
-    
+    /**
+     * Add an answer and answer's connection  with task in database if such answer haven't already exist.
+     * @param answer Answer instance.
+     * @param taskId ID of answer's task.
+     * @param correctness true if current answer is correct. False - if not.
+     * @throws RuntimeException 
+     */
     public void addAnswer(Answer answer, int taskId, boolean correctness) throws RuntimeException {
         Answer temp = createAnswer(answer);
-        //try{ //or maybe just throw this. 
+        //try { 
             taskAnswersDao.create(new TaskAnswersBuilder()
                         .setAnswerId(temp.getId())
                         .setTaskId(taskId)
@@ -53,7 +56,7 @@ public class AnswerService {
                         .build());
 //        }
 //        catch(RuntimeException e) {
-//            
+//            logger.warning("Error while processing database " + e);
 //        }
     }
 }

@@ -15,13 +15,24 @@ import javax.servlet.http.HttpSession;
 
 
 public class UpdateTest implements Command {
-
     private TestService testService = TestService.getInstance();
 
+    /**
+     * Command class. Handles addtest.jsp page. 
+     * Method uses test service to set new subject to test.
+     * @param request
+     * @param response
+     * @return bull because of redirecting.
+     * @throws ServletException
+     * @throws IOException
+     * @throws RuntimeException if some mistake in model arises. 
+     */
     @Override
-    public String execute(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException, RuntimeException {
-        String subject = request.getParameter("subj");
-        int id = Integer.parseInt(request.getParameter("id"));
+    public String execute(HttpServletRequest request, HttpServletResponse response) 
+            throws ServletException, IOException, RuntimeException {
+        
+        String subject = request.getParameter("subject");
+        int id = Integer.parseInt(request.getParameter("subjectId"));
         testService.setSubject(id, subject);
 
         response.sendRedirect(Constants.REDIRECT_UPDATE_PAGE + id);

@@ -9,6 +9,9 @@ import com.wookie.epamwebtesting.controllers.commands.CommandList;
 import com.wookie.epamwebtesting.controllers.constants.Constants;
 import com.wookie.epamwebtesting.entities.User;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.logging.Logger;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -24,12 +27,28 @@ import javax.servlet.http.HttpServletRequest;
  */
 @WebFilter("/*")
 public class AuthorizationFilter implements Filter {
+   Map<String, String> commandRights = new HashMap<>();
 
+   {
+       commandRights.put("DELETE_SUBJECT", Constants.ADMIN_RIGHTS);
+       commandRights.put("ADD_SUBJECT", Constants.ADMIN_RIGHTS);
+       commandRights.put("ADMIN_PAGE", Constants.ADMIN_RIGHTS);
+       commandRights.put("SHOW_TUTORS_TESTS", Constants.TUTOR_RIGHTS);
+       commandRights.put("TO_ADD_TASK", Constants.TUTOR_RIGHTS);
+       commandRights.put("TO_UPDATE_TASK", Constants.TUTOR_RIGHTS);
+       commandRights.put("TO_UPDATE_TEST", Constants.TUTOR_RIGHTS);
+       commandRights.put("ADD_TASK", Constants.TUTOR_RIGHTS);
+       commandRights.put("ADD_TEST", Constants.TUTOR_RIGHTS);
+       commandRights.put("DELETE_TASK", Constants.TUTOR_RIGHTS);
+       commandRights.put("SHOW_TESTS_BY_TUTOR", Constants.STUDENT_RIGHTS);
+       commandRights.put("SHOW_TESTS_BY_SUBJECT", Constants.STUDENT_RIGHTS);
+       commandRights.put("SHOW_STATISTIC", Constants.STUDENT_RIGHTS);
+   }
     /**
      * Default constructor. 
      */
     public AuthorizationFilter() {
-        // TODO Auto-generated constructor stub
+        
     }
 
     /**
@@ -40,6 +59,7 @@ public class AuthorizationFilter implements Filter {
     }
 
     /**
+     * Method check rights of user to access a web page.
      * @param request
      * @param response
      * @param chain
@@ -48,64 +68,24 @@ public class AuthorizationFilter implements Filter {
      * @see Filter#doFilter(ServletRequest, ServletResponse, FilterChain)
      */
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) 
-            throws IOException, ServletException {
+            throws IOException, ServletException, RuntimeException {
 
         User user = (User)((HttpServletRequest)request).getSession().getAttribute(Constants.USER_SESSION_ATTRIBUTE);
-        if(user == null)
-        System.out.println("User is nulL!");
         
-        String currentCommand = request.getParameter("command");
+        String currentCommand = request.getParameter(Constants.PROPERTY_COMMAND);
+        
         if(currentCommand != null) {
-            
-            switch(currentCommand) {
-                
-                case "DELETE_SUBJECT" : 
-                case "ADD_SUBJECT" :
-                //case "REDIRECT_ADMIN_PAGE" :
-                case "ADMIN_PAGE" :
-                    try {
-                        if(!Constants.ADMIN_RIGHTS.equals(user.getRights().getName())) {
-                            throw new RuntimeException("login error");
-                        }
-                        break; 
-                    } catch (NullPointerException e) {
-                        throw new RuntimeException("login error");
+            try {
+                String neededRight = commandRights.get(currentCommand);
+                if(neededRight != null)
+                    if(!commandRights.get(currentCommand).equals(user.getRights().getName())) {
+                        throw new RuntimeException(Constants.ERROR_LOGIN);
                     }
-                    
-                case "SHOW_TUTORS_TESTS" :   
-                case "TO_ADD_TASK" :    
-                case "TO_UPDATE_TASK" :
-                case "TO_UPDATE_TEST" :
-                case "UPDATE_TEST" :
-                case "ADD_TASK" :
-                case "ADD_TEST" :
-                case "DELETE_TASK" :
-                    try {
-                        if(!Constants.TUTOR_RIGHTS.equals(user.getRights().getName())) {
-                            throw new RuntimeException("login error");
-                        }
-                        break;
-                    } catch (NullPointerException e) {
-                        throw new RuntimeException("login error");
-                    }
-                    
-                case "SHOW_TESTS_BY_TUTOR" :    
-                case "SHOW_TESTS_BY_SUBJECT" :  
-                    try {
-                        if(!Constants.STUDENT_RIGHTS.equals(user.getRights().getName())) {
-                            throw new RuntimeException("login error");
-                        }
-                        break;
-                    } catch (NullPointerException e) {
-                        throw new RuntimeException("login error");
-                    }    
+                 
+            } catch (NullPointerException e) {
+                throw new RuntimeException(Constants.ERROR_LOGIN);
             }
         }
-        
-        
-//    	if(!"ok".equals(((HttpServletRequest)request).getSession().getAttribute("user"))){
-//            throw new RuntimeException("login error");
-//    	}
         
         // pass the request along the filter chain
         chain.doFilter(request, response);
@@ -115,7 +95,7 @@ public class AuthorizationFilter implements Filter {
      * @see Filter#init(FilterConfig)
      */
     public void init(FilterConfig fConfig) throws ServletException {
-    	// TODO Auto-generated method stub
+        
     }
 
 }

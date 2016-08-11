@@ -14,17 +14,26 @@ import javax.servlet.http.HttpServletResponse;
 
 
 public class DeleteTask implements Command {
-
     private TaskService taskService = TaskService.getInstance();
 
+    /**
+     * Command class. Handles addtest.jsp page. 
+     * Method calls task service for deleting task from database.
+     * @param request
+     * @param response
+     * @return name of existing command for redirection.
+     * @throws ServletException
+     * @throws IOException
+     * @throws RuntimeException if some mistake in model arises. 
+     */
     @Override
-    public String execute(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException, RuntimeException {
+    public String execute(HttpServletRequest request, HttpServletResponse response) 
+            throws ServletException, IOException, RuntimeException {
 
-//        System.out.println(request.getPathInfo());
-        int taskId = Integer.parseInt(request.getParameter("taskId"));
-        int testid = Integer.parseInt(request.getParameter("testId"));
-        taskService.deleteTask(taskId);
-        return Constants.REDIRECT_UPDATE_PAGE + testid;
+        int taskId = Integer.parseInt(request.getParameter(Constants.PROPERTY_TASK_ID));
+        int testId = Integer.parseInt(request.getParameter(Constants.PROPERTY_TEST_ID));
+        taskService.deleteTask(taskId, testId);
+        return Constants.REDIRECT_UPDATE_PAGE + testId;  // Using existing command for redirection.
     }
 
 }

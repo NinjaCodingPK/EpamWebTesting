@@ -22,12 +22,23 @@ import javax.servlet.http.HttpSession;
 public class LoginUser implements Command {
     private UserService userService = UserService.getInstance();
     
+    /**
+     * Command class. Handles index.jsp page. 
+     * Method use HttpSession for handling user's data.
+     * @param request
+     * @param response
+     * @return name of page for forwarding.
+     * @throws ServletException
+     * @throws IOException
+     * @throws RuntimeException if login data is wrong. 
+     */
     @Override
-    public String execute(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException, RuntimeException {
+    public String execute(HttpServletRequest request, HttpServletResponse response) 
+            throws ServletException, IOException, RuntimeException {
         try {
-            User user = userService.getUser(request.getParameter(Constants.USER_LOGIN));
+            User user = userService.getUser(request.getParameter(Constants.PROPERTY_USER_LOGIN));
             
-            userService.checkPassword(user, request.getParameter(Constants.USER_PASSWORD));
+            userService.checkPassword(user, request.getParameter(Constants.PROPERTY_USER_PASSWORD));
             
             HttpSession session = request.getSession();
             session.setAttribute(Constants.USER_SESSION_ATTRIBUTE, user);

@@ -16,15 +16,25 @@ import javax.servlet.http.HttpServletResponse;
 
 
 public class AdminRedirect implements Command {
-
     SubjectService subjectService = SubjectService.getInstance();
 
+    /**
+     * Command class. Handles adminpage.jsp page. 
+     * Method calls test and subject service for filling necessary data for administrator's
+     * page from database.
+     * @param request
+     * @param response
+     * @return name of administrator's page from Constants class.
+     * @throws ServletException
+     * @throws IOException
+     * @throws RuntimeException if some mistake in model arises. 
+     */
     @Override
-    public String execute(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException, RuntimeException {
+    public String execute(HttpServletRequest request, HttpServletResponse response) 
+            throws ServletException, IOException, RuntimeException {
 
         Set<Subject> subjects = subjectService.getSubjects();
-
-        request.setAttribute("subjects", subjects);
+        request.setAttribute(Constants.ATTRIBUTE_SUBJECTS, subjects);
 
         return Constants.ADMIN_PAGE;
     }

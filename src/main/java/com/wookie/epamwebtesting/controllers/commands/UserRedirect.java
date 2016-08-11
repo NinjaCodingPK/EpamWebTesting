@@ -21,8 +21,20 @@ public class UserRedirect implements Command {
     UserService userService = UserService.getInstance();
     SubjectService subjectService = SubjectService.getInstance();
 
+    /**
+     * Command class. Handles all "Back" buttons from web pages. 
+     * Method uses session for getting a necessary information to redirection back 
+     * to user's page.
+     * @param request
+     * @param response
+     * @return bull because of redirecting.
+     * @throws ServletException
+     * @throws IOException
+     * @throws RuntimeException if some mistake in model arises. 
+     */
     @Override
-    public String execute(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException, RuntimeException {
+    public String execute(HttpServletRequest request, HttpServletResponse response) 
+            throws ServletException, IOException, RuntimeException {
 
         //Set<Subject> subjects = subjectService.getSubjects();
         //request.setAttribute("subjects", subjects);

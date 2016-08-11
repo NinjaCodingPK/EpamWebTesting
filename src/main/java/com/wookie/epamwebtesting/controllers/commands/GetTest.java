@@ -15,14 +15,25 @@ import javax.servlet.http.HttpServletResponse;
 
 
 public class GetTest implements Command {
-
     TestService testService = TestService.getInstance();
 
+    /**
+     * Command class. Handles alltests.jsp page. 
+     * Method calls test service for getting a proper test from database.
+     * @param request
+     * @param response
+     * @return name of page for forwarding.
+     * @throws ServletException
+     * @throws IOException
+     * @throws RuntimeException if some mistake in model arises. 
+     */
     @Override
     public String execute(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException, RuntimeException {
-        String id = request.getParameter("id");
-        Test test = testService.getTest(Integer.parseInt(id));
-        request.setAttribute("test", test);
+        String testId = request.getParameter(Constants.PROPERTY_TEST_ID);
+        Test test = testService.getTest(Integer.parseInt(testId));
+        
+        request.setAttribute(Constants.ATTRIBUTE_TEST, test);
+        request.setAttribute(Constants.PROPERTY_TEST_ID, testId);
 
         return Constants.SHOW_TEST_PAGE;
     }

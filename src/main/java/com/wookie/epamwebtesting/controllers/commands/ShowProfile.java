@@ -16,11 +16,21 @@ import javax.servlet.http.HttpSession;
 
 public class ShowProfile implements Command {
 
+    /**
+     * Command class. Handles studentpage.jsp, adminpage.jsp and tutorpage.jsp pages. 
+     * Method uses session for getting user's data and sends it into profile page.
+     * @param request
+     * @param response
+     * @return name of page for forwarding.
+     * @throws ServletException
+     * @throws IOException
+     * @throws RuntimeException if some mistake in model arises. 
+     */
     @Override
     public String execute(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException, RuntimeException {
         HttpSession session = request.getSession();
         
-        request.setAttribute("user", (User)session.getAttribute(Constants.USER_SESSION_ATTRIBUTE));
+        request.setAttribute(Constants.ATTRIBUTE_USER, (User)session.getAttribute(Constants.USER_SESSION_ATTRIBUTE));
         
         return Constants.PROFILE_PAGE;
     }

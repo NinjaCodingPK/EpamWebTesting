@@ -11,9 +11,11 @@ import com.wookie.epamwebtesting.dao.TaskAnswersDao;
 import com.wookie.epamwebtesting.dao.TaskDao;
 import com.wookie.epamwebtesting.dao.TestDao;
 import com.wookie.epamwebtesting.dao.TestTasksDao;
+import com.wookie.epamwebtesting.dao.jdbc.JdbcStudentTestsDao;
 import com.wookie.epamwebtesting.entities.Answer;
 import com.wookie.epamwebtesting.entities.Task;
 import com.wookie.epamwebtesting.entities.TaskAnswers;
+import com.wookie.epamwebtesting.entities.Test;
 import com.wookie.epamwebtesting.entities.TestTasks;
 import com.wookie.epamwebtesting.entities.builder.AnswerBuilder;
 import com.wookie.epamwebtesting.entities.builder.TaskBuilder;
@@ -22,10 +24,12 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 
 public class TaskService {
-
+    private static final Logger logger = LogManager.getLogger(TaskService.class);  
     private TestDao testDao = DaoFactory.getFactory().createTestDao();
     private TaskDao taskDao = DaoFactory.getFactory().createTaskDao();
     private AnswerDao answerDao = DaoFactory.getFactory().createAnswerDao();
@@ -45,11 +49,6 @@ public class TaskService {
      * @return Set of tasks.
      */
     public Set<Task> getTasks(int testId) throws RuntimeException {
-//        TaskDao taskDao = DaoFactory.getFactory().createTaskDao();
-//        AnswerDao answerDao = DaoFactory.getFactory().createAnswerDao();
-//        TaskAnswersDao taskAnswersDao = DaoFactory.getFactory().createTaskAnswersDao();
-//        TestTasksDao testTasksDao = DaoFactory.getFactory().createTestTasksDao();
-
         Set<TestTasks> testTasks = testTasksDao.findByTestId(testId);
         Set<Task> tasks = new HashSet<>();
         for (TestTasks t : testTasks) {
@@ -67,19 +66,26 @@ public class TaskService {
     }
 
     public Task getTask(int id) throws RuntimeException {
-
-//        Task task = new Task();
-//        task.setId(0);
-//        task.setText("EWfwfwe?");
-//        task.setToughness(3);
         return taskDao.findById(id);
     }
 
+    /**
+     * Method checks answer correctness.
+     * @param taskId ID of a task.
+     * @param answerId ID of an answer.
+     * @return True if answer is correct. False - if not.
+     * @throws RuntimeException 
+     */
     public boolean isRightAnswer(int taskId, int answerId) throws RuntimeException {
-//        TaskAnswersDao taskAnswersDao = DaoFactory.getFactory().createTaskAnswersDao();
         return taskAnswersDao.getCorrectness(taskId, answerId);
     }
 
+    /**
+     * Method gets all task answers by task ID.
+     * @param taskId ID of a task.
+     * @return List of answers.
+     * @throws RuntimeException 
+     */
     public List<String> getAnswersForTask(int taskId) throws RuntimeException {
         List<String> answers = new ArrayList<>();
         Set<TaskAnswers> taskAnswers = taskAnswersDao.findByTaskId(taskId);
@@ -94,39 +100,39 @@ public class TaskService {
         }
         
         return answers;
-        //return (String[])answers.toArray();
     }
 
+    /**
+     * Method creates Task in database if such task haven't already exist. 
+     * @param task 
+     * @return
+     * @throws RuntimeException 
+     */
     private Task createTask(Task task)throws RuntimeException {
         Task temp = taskDao.getByText(task.getText());
         if (temp == null) {
             temp = taskDao.create(task);
-            //temp = taskDao.getByText(task.getText());
         }
 
         return temp;
     }
 
-    private Task updateTask(Task task) throws RuntimeException {
-        if (taskAnswersDao.findByTaskId(task.getId()).size() > 1) {
-            deleteTask(task.getId());
-            return createTask(task);
-        } else {
-            taskDao.update(task);
-            return task;
-        }
-    }
-
-    public boolean addTask(Integer taskId, Integer testId, String question, String[] answers, Integer toughness) throws RuntimeException { 
-        Task task;
+    /**
+     * Method adds task in database and connects it with test and answers.
+     * @param taskId ID of task.
+     * @param testId ID of test.
+     * @param question task's question.
+     * @param answers String array - task's answers. 
+     * @param toughness task's toughness.
+     * @throws RuntimeException 
+     */
+    public void addTask(Integer taskId, Integer testId, String question, String[] answers, Integer toughness) 
+            throws RuntimeException { 
+        
+        Task task = null;
+        int currentTestId = testId;
         if (taskId.equals(0)) {
             task = createTask(new TaskBuilder()
-                    .setText(question)
-                    .setToughness(toughness)
-                    .build());
-        } else {
-            task = updateTask(new TaskBuilder()
-                    .setId(taskId)
                     .setText(question)
                     .setToughness(toughness)
                     .build());
@@ -141,26 +147,44 @@ public class TaskService {
             }
         }
 
-//        try { // Or maybe just throw this.
+        try { 
             testTasksDao.create(new TestTasksBuilder()
                     .setTaskId(task.getId())
-                    .setTestId(testId)
+                    .setTestId(currentTestId)
                     .build());
-//        } catch (RuntimeException e) {
-//
-//        }
+        } catch (RuntimeException e) {
+            logger.error("Error while processing database " + e);
+        }
 
-        return true;
     }
 
-    public void deleteTask(int id) throws RuntimeException {
-        Set<TaskAnswers> taskAnswers = taskAnswersDao.findByTaskId(id);
+    
+    /**
+     * Method deletes Task and all unused entries which are connected 
+     * with this task.
+     * @param taskId ID of a task.
+     * @param testId ID of a test.
+     * @throws RuntimeException 
+     */
+    public void deleteTask(int taskId, int testId) throws RuntimeException {
+        testTasksDao.deleteEntries(testId, taskId);
+        
+        // answers which are used in current test.
+        Set<TaskAnswers> taskAnswers = taskAnswersDao.findByTaskId(taskId); 
+        Set<TestTasks> testTasks = testTasksDao.findByTaskId(taskId); // tests which use current task.
         Set<Answer> answers = new HashSet<>();
+        Set<Test> tests = new HashSet<>();
+        
         for (TaskAnswers t : taskAnswers) {
             answers.add(answerDao.findById(t.getAnswerId()));
         }
-
-        taskDao.delete(id);
+        
+        for(TestTasks t : testTasks) {
+            tests.add(testDao.findById(t.getTestId()));
+        }
+        
+        if(tests.isEmpty())
+            taskDao.delete(taskId);
 
         for (Answer a : answers) {
             if (taskAnswersDao.findByAnswerId(a.getId()).isEmpty()) {

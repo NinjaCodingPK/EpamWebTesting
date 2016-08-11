@@ -15,18 +15,27 @@ import javax.servlet.http.HttpSession;
 
 
 public class AddTask implements Command {
-
     TaskService taskService = TaskService.getInstance();
 
+    /**
+     * Command class. Handles addtask.jsp page. 
+     * Method calls task service for adding a task into database.
+     * @param request
+     * @param response
+     * @return null because of using a redirection.
+     * @throws ServletException
+     * @throws IOException
+     * @throws RuntimeException if some mistake in model arises. 
+     */
     @Override
     public String execute(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException, RuntimeException {
-        Integer taskId = Integer.parseInt(request.getParameter("id"));
-        String question = request.getParameter("question");
-        String[] answers = request.getParameterValues("answ");
-        Integer toughness = Integer.parseInt(request.getParameter("toughness"));
+        Integer taskId = Integer.parseInt(request.getParameter(Constants.PROPERTY_TASK_ID));
+        String question = request.getParameter(Constants.PROPERTY_TASK_QUESTION);
+        String[] answers = request.getParameterValues(Constants.PROPERTY_TASK_ANSWER);
+        Integer toughness = Integer.parseInt(request.getParameter(Constants.PROPERTY_TASK_TOUGHNESS));
         HttpSession session = request.getSession();
         Integer testId = (Integer) session.getAttribute(Constants.TEST_UPDATE_SESSION_ATTRIBUTE);
-
+        
         taskService.addTask(taskId, testId, question, answers, toughness);
 
         response.sendRedirect(Constants.REDIRECT_UPDATE_PAGE + testId.toString());

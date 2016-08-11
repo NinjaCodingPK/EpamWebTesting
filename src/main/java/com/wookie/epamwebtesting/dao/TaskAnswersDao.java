@@ -8,4 +8,5 @@ public interface TaskAnswersDao extends GenericDao<TaskAnswers> {
     Set<TaskAnswers> findByTaskId(int taskId);
     Set<TaskAnswers> findByAnswerId(int answerId);
     boolean getCorrectness(int taskId, int answerId);
+    //public boolean deleteEntries(int taskId, int answerId);
 }

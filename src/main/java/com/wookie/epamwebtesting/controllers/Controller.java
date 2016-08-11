@@ -15,7 +15,10 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-
+/**
+ * Main servlet. Handling all requests form web pages and sends them to propper
+ * command.
+ */
 @WebServlet("/Controller")
 public class Controller extends HttpServlet {
 
@@ -23,13 +26,18 @@ public class Controller extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        String commandName = request.getParameter("command");
-        Command command = CommandList.valueOf(commandName).getCommand();
+        String commandName = request.getParameter(Constants.PROPERTY_COMMAND);
         String goTo;
-        try {
-            goTo = command.execute(request, response);
-        } catch (Exception ex) {
-            goTo = Constants.ERROR_PAGE;
+        if (commandName != null) {
+            Command command = CommandList.valueOf(commandName).getCommand();
+
+            //try {
+                goTo = command.execute(request, response);
+            //} catch (RuntimeException ex) {
+              //  goTo = Constants.ERROR_PAGE;
+            //}
+        } else {
+            goTo = Constants.LOGIN_PAGE;
         }
         if (goTo != null) {
             request.getRequestDispatcher(goTo).forward(request, response);

@@ -8,4 +8,5 @@ import java.util.Set;
 public interface TestTasksDao extends GenericDao<TestTasks> {
      public Set<TestTasks> findByTestId(int testId);
      public Set<TestTasks> findByTaskId(int taskId);
+     public boolean deleteEntries(int testId, int taskId);
 }

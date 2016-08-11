@@ -28,12 +28,17 @@ public class SubjectService {
     /**
      * Method finds all subjects.
      *
-     * @return
+     * @return set of subjects.
      */
     public Set<Subject> getSubjects() throws RuntimeException {
         return subjectDao.findAll();
     }
 
+    /**
+     * Method deletes subject and all subject's test.
+     * @param subjectId ID of subject.
+     * @throws RuntimeException 
+     */
     public void deleteSubject(int subjectId) throws RuntimeException  {
         Set<Test> tests = testDao.findBySubject(subjectId);
         
@@ -44,6 +49,11 @@ public class SubjectService {
         subjectDao.delete(subjectId);
     }
 
+    /**
+     * Method add subject in database.
+     * @param subjectName
+     * @throws RuntimeException 
+     */
     public void addSubject(String subjectName) throws RuntimeException  {
             subjectDao.create(new SubjectBuilder().setName(subjectName).build());
     }

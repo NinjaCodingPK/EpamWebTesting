@@ -10,5 +10,5 @@ public interface SubjectDao extends GenericDao<Subject> {
      * @param subject name of subject.
      * @return subject's ID.
      */
-     public int getId(String subject);
+     public Integer getId(String subject);
 }

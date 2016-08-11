@@ -6,45 +6,54 @@
 package com.wookie.epamwebtesting.services;
 
 import com.wookie.epamwebtesting.controllers.constants.Constants;
+import com.wookie.epamwebtesting.controllers.filters.AuthorizationFilter;
 import com.wookie.epamwebtesting.dao.DaoFactory;
 import com.wookie.epamwebtesting.dao.RightsDao;
 import com.wookie.epamwebtesting.dao.UserDao;
+import com.wookie.epamwebtesting.entities.StudentTests;
+import com.wookie.epamwebtesting.entities.Test;
 import com.wookie.epamwebtesting.entities.User;
 import java.util.Map;
 import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class UserService {
-
+    private static final Logger logger = LogManager.getLogger(UserService.class);  
     private static UserService instance = new UserService();
+    
+    private TestService testService = TestService.getInstance();
+    private SubjectService subjectService = SubjectService.getInstance();
+    private UserDao userDao = DaoFactory.getFactory().createUserDao();
+    private RightsDao rightsDao = DaoFactory.getFactory().createRightsDao();
 
     public static UserService getInstance() {
         return instance;
     }
-
-//    public void createUser(String name, String surname, String login, String password, String rights) {
-//        UserDao userDao = DaoFactory.getFactory().createUserDao();
-//        userDao.create(new UserBuilder()
-//                .setName(name)
-//                .setSurname(surname)
-//                .setLogin(login)
-//                .setPassword(password)
-//                .setRights(2) //TODO
-//                .build());
-//    }
     
+    /**
+     * Method finds user by his login.
+     * @param login user's login.
+     * @return User instance.
+     * @throws RuntimeException 
+     */
     public User getUser(String login) throws RuntimeException {
-        UserDao userDao = DaoFactory.getFactory().createUserDao();
-        RightsDao rightsDao = DaoFactory.getFactory().createRightsDao();
         User user = userDao.getByLogin(login);
         user.getRights().setName(rightsDao.findById(user.getRights().getId()).getName());
 
         return user;
     }
 
-    public void checkPassword(User user, String password) throws Exception {
+    /**
+     * Method checks user's password
+     * @param user User instance.
+     * @param password inputed password.
+     * @throws RuntimeException if password is wrong.
+     */
+    public void checkPassword(User user, String password) throws RuntimeException {
         if (!user.getPassword().equals(password)) {
-            throw new Exception();
+            throw new RuntimeException();
         }
     }
 
@@ -55,40 +64,31 @@ public class UserService {
      * @param request Http request.
      * @param user instance of User class.
      * @return name of page in which user should be redirected.
-     * @throws RuntimeException if DAO classes throws exception.
-     * @throws Exception if login is wrong.
+     * @throws RuntimeException if DAO classes throws exception or error while logging in appears.
      */
     public String processUser(HttpServletRequest request, User user) throws RuntimeException {
-        TestService testService = TestService.getInstance();
-        SubjectService subjectService = SubjectService.getInstance();
-        UserDao userDao = DaoFactory.getFactory().createUserDao();
+        logger.info("Starting process user");
 
         Set subjects = subjectService.getSubjects();
 
         switch (user.getRights().getName()) {
-            case "Tutor":
+            case Constants.TUTOR_RIGHTS:
                 Map tests = testService.fillTests(testService.getByUser(user.getId()));
-                request.setAttribute("resultlist", tests);
+                request.setAttribute(Constants.PROPERTY_RESULT_LIST, tests);
                 return Constants.TUTOR_PAGE;
-            case "Student":
-                Set tutors = userDao.findByRights("Tutor");
-                request.setAttribute("tutorslist", tutors);
-                request.setAttribute("subjectlist", subjects);
+            case Constants.STUDENT_RIGHTS:
+                Set tutors = userDao.findByRights(Constants.TUTOR_RIGHTS);
+                request.setAttribute(Constants.PROPERTY_TUTOR_LIST, tutors);
+                request.setAttribute(Constants.PROPERTY_SUBJECT_LIST, subjects);
                 return Constants.STUDENT_PAGE;
-            case "Admin":
-                request.setAttribute("subjects", subjects);
+            case Constants.ADMIN_RIGHTS:
+                request.setAttribute(Constants.PROPERTY_SUBJECT_LIST, subjects);
                 return Constants.ADMIN_PAGE;
             default:
+                logger.error("Error while loggin in");
                 throw new RuntimeException();
         }
 
     }
     
-//    public Set<String> showRights() {
-//        UserDao userDao = DaoFactory.getFactory().createUserDao();
-//
-//        Set<Dao> rights = userDao.getRights();
-//        rights.remove("admin");
-//        return rights;
-//    }
 }

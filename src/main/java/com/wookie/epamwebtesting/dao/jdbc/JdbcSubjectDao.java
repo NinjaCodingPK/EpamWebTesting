@@ -12,9 +12,11 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.apache.logging.log4j.*;
 
 
-public class JdbcSubjectDao implements SubjectDao {
+public class JdbcSubjectDao extends JdbcConnectorDao implements SubjectDao {
+    private static final Logger logger = LogManager.getLogger(JdbcSubjectDao.class);
     public static final String CREATE_STATEMENT =
             "INSERT INTO Subject (name) VALUES (?);";
     public static final String UPDATE_STATEMENT =
@@ -28,11 +30,19 @@ public class JdbcSubjectDao implements SubjectDao {
      public static final String FIND_BY_SUBJECT_STATEMENT =
              "SELECT * from Subject WHERE name=?;";
 
+     public static final String COLUMN_ID = "id";
+     public static final String COLUMN_NAME = "name";
+     
+     private Subject getResult(ResultSet rs) throws SQLException {
+         return new SubjectBuilder()
+                    .setId(rs.getInt(COLUMN_ID))
+                    .setName(rs.getString(COLUMN_NAME))
+                    .build();
+     }
+     
     @Override
     public Subject create(Subject subject) {
-        //INSERT INTO `testing`.`Tutor` (`name`, `surname`, `login`, `password`) VALUES ('asd', 'asd', 'asd', 'asd');
-        try (Connection cn = JdbcDaoFactory.getConnection()) {
-            //Statement query = cn.createStatement();
+        try (Connection cn = getConnection()) {
             PreparedStatement preparedStatement = cn.prepareStatement(CREATE_STATEMENT,  Statement.RETURN_GENERATED_KEYS);
             preparedStatement.setString(1, subject.getName());
             preparedStatement.executeUpdate();
@@ -45,14 +55,14 @@ public class JdbcSubjectDao implements SubjectDao {
             
             return subject;
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Error while processing database " + logger.getName());
             throw new RuntimeException(e);
         }
     }
 
     @Override
     public boolean update(Subject subject) {
-        try (Connection cn = JdbcDaoFactory.getConnection()) {
+        try (Connection cn = getConnection()) {
             PreparedStatement preparedStatement = cn.prepareStatement(UPDATE_STATEMENT);
             preparedStatement.setString(1, subject.getName());
             preparedStatement.setInt(2, subject.getId());
@@ -60,83 +70,77 @@ public class JdbcSubjectDao implements SubjectDao {
             preparedStatement.close();
             return true;
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Error while processing database " + logger.getName());
             return false;
         }
     }
 
     @Override
     public boolean delete(int id) {
-        try (Connection cn = JdbcDaoFactory.getConnection()) {
+        try (Connection cn = getConnection()) {
             PreparedStatement preparedStatement = cn.prepareStatement(DELETE_STATEMENT);
             preparedStatement.setInt(1, id);
             preparedStatement.executeUpdate();
             preparedStatement.close();
             return true;
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Error while processing database " + logger.getName());
             return false;
         }
     }
 
     @Override
     public Subject findById(int id) {
-        try (Connection cn = JdbcDaoFactory.getConnection()) {
+        try (Connection cn = getConnection()) {
             PreparedStatement preparedStatement = cn.prepareStatement(FIND_BY_ID_STATEMENT);
             preparedStatement.setInt(1, id);
             ResultSet rs = preparedStatement.executeQuery();
 
             Subject temp = null;
             if(rs.next()) {
-                temp = new SubjectBuilder()
-                    .setId(rs.getInt("id"))
-                    .setName(rs.getString("name"))
-                    .build();
+                temp = getResult(rs);
             }
             preparedStatement.close();
             return temp;
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Error while processing database " + logger.getName());
             throw new RuntimeException(e);
         }
     }
 
     @Override
     public Set<Subject> findAll() {
-        try (Connection cn = JdbcDaoFactory.getConnection()) {
+        try (Connection cn = getConnection()) {
             Statement query = cn.createStatement();
             ResultSet rs = query.executeQuery(FIND_ALL_STATEMENT);
             Set<Subject> res = new HashSet<>();
             while (rs.next()) {
-                res.add(new SubjectBuilder()
-                        .setId(rs.getInt("id"))
-                        .setName(rs.getString("name"))
-                        .build());
+                res.add(getResult(rs));
             }
             query.close();
             return res;
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Error while processing database " + logger.getName());
             throw new RuntimeException(e);
         }
     }
 
     @Override
-    public int getId(String subject) {
-        try (Connection cn = JdbcDaoFactory.getConnection()) {
+    public Integer getId(String subject) {
+        try (Connection cn = getConnection()) {
             PreparedStatement preparedStatement = cn.prepareStatement(FIND_BY_SUBJECT_STATEMENT);
             preparedStatement.setString(1, subject);
             ResultSet rs = preparedStatement.executeQuery();
             
+            Integer res = null;
             if(rs.next()) {
-                int res = rs.getInt("id");
-                preparedStatement.close();
-                return res;
+                 res = rs.getInt(COLUMN_ID);
+                
             }
-            else
-                throw new SQLException();
+            preparedStatement.close();
+            return res;
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Error while processing database " + logger.getName());
             throw new RuntimeException(e);
         }
     }

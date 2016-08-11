@@ -1,43 +1,30 @@
 package com.wookie.epamwebtesting.dao.jdbc;
 
 import com.wookie.epamwebtesting.dao.*;
+import com.wookie.epamwebtesting.entities.StudentTests;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.logging.Logger;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
 
 
 public class JdbcDaoFactory extends DaoFactory {
-
+    private final static Logger logger = Logger.getLogger(JdbcDaoFactory.class.getName());
+    private final static String POOL_NAME = "jdbc/WebTosterResource";
     private static DataSource ds;
-//    public static final String HOST = "jdbc:mysql://localhost:3306/testing"
-//            + "?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&"
-//            + "serverTimezone=UTC&useSSL=false";
-//    public static final String ROOT = "root";
-//    public static final String PASSWORD = "1234";
 
     public JdbcDaoFactory() {
         try {
             InitialContext ic = new InitialContext();
-            //ds = (DataSource) ic.lookup("jdbc/WebTosterResource");
-            ds = (DataSource) ic.lookup("jdbc/WebTosterResource");
+            ds = (DataSource) ic.lookup(POOL_NAME);
         } catch (NamingException e) {
-            //e.printStackTrace();
+            logger.warning("Error while processing database " + logger.getName());
         }
     }
 
     static Connection getConnection() throws SQLException {
-        /*try {
-            Class.forName("com.mysql.jdbc.Driver").newInstance();
-        } catch (InstantiationException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        }
-        return DriverManager.getConnection(HOST, ROOT, PASSWORD);*/
         return ds.getConnection();
     }
 
@@ -81,4 +68,7 @@ public class JdbcDaoFactory extends DaoFactory {
         return new JdbcRightsDao();
     }
 
+    public StudentTestsDao createStudentTestsDao() {
+        return new JdbcStudentTestsDao();
+    }
 }

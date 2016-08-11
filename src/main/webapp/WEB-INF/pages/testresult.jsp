@@ -1,5 +1,8 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
+<fmt:setLocale value="${language}" />
+<fmt:setBundle basename="bundles.bundle" />
 <!DOCTYPE html>
+
 <html>
     <head>
         <style type="text/css">

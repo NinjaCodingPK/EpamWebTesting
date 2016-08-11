@@ -5,7 +5,9 @@
  */
 package com.wookie.epamwebtesting.controllers.constants;
 
-
+/**
+ * Class handles necessary constants.
+ */
 public class Constants {
 
     public static final String LOGIN_PAGE = "index.jsp";
@@ -20,7 +22,8 @@ public class Constants {
     public static final String ADD_TEST_PAGE = "WEB-INF/pages/addtest.jsp";
     public static final String ADMIN_PAGE = "WEB-INF/pages/adminpage.jsp";
     public static final String PROFILE_PAGE = "WEB-INF/pages/profilePage.jsp";
-    public static final String ERROR_PAGE  = "WEB-INF/pages/errorPage.jsp";
+    public static final String ERROR_PAGE = "WEB-INF/pages/errorPage.jsp";
+    public static final String STATISTIC_PAGE  = "WEB-INF/pages/userStatisticPage.jsp";
 
     public static final String REDIRECT_UPDATE_PAGE = "./Controller?command=TO_UPDATE_TEST&testId=";
     public static final String REDIRECT_ADMIN_PAGE = "./Controller?command=USER_PAGE";
@@ -32,10 +35,33 @@ public class Constants {
     public static final String TUTOR_RIGHTS = "Tutor";
     public static final String STUDENT_RIGHTS = "Student";
     
-    public static final String USER_NAME = "name";
-    public static final String USER_SURNAME = "surname";
-    public static final String USER_LOGIN = "login";
-    public static final String USER_PASSWORD = "password";
-    public static final String USER_RIGHTS = "rights";
-
+    public static final String PROPERTY_USER_NAME = "name";
+    public static final String PROPERTY_USER_SURNAME = "surname";
+    public static final String PROPERTY_USER_LOGIN = "login";
+    public static final String PROPERTY_USER_PASSWORD = "password";
+    public static final String PROPERTY_USER_RIGHTS = "rights";
+    public static final String PROPERTY_SUBJECT_NAME = "subjectname";
+    public static final String PROPERTY_SUBJECT_ID = "subjectId";
+    public static final String PROPERTY_TASK_ID = "taskId";
+    public static final String PROPERTY_TASK_QUESTION = "question";
+    public static final String PROPERTY_TASK_QUESTION_ID = "question_id";
+    public static final String PROPERTY_TASK_ANSWER = "answ";
+    public static final String PROPERTY_TASK_TOUGHNESS = "toughness";
+    public static final String ATTRIBUTE_SUBJECTS = "subjects";
+    public static final String ATTRIBUTE_TEST = "test";
+    public static final String ATTRIBUTE_TASK = "task";
+    public static final String ATTRIBUTE_ANSWERS = "answers";
+    public static final String ATTRIBUTE_TUTOR = "tutor";
+    public static final String ATTRIBUTE_USER = "user";
+    public static final String ATTRIBUTE_RESULT = "result";
+    public static final String ATTRIBUTE_SUBJECT = "subject";
+    public static final String PROPERTY_TEST_ID = "testId";
+    public static final String PROPERTY_RESULT_LIST = "resultlist";
+    public static final String PROPERTY_TEST_LIST = "testlist";
+    public static final String PROPERTY_SUBJECT_LIST = "subjectlist";
+    public static final String PROPERTY_TUTOR_LIST = "tutorlist";
+    public static final String PROPERTY_COMMAND = "command";
+    
+    public static final String ERROR_LOGIN = "login error";
 }
+

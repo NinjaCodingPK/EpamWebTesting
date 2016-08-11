@@ -5,9 +5,11 @@
  */
 package com.wookie.epamwebtesting.controllers.commands;
 
-
+/**
+ * List of commands from Command pattern.
+ */
 public enum CommandList {
-    SHOW_SUBJECT(new ShowSubject()),
+    //SHOW_SUBJECT(new ShowSubject()),
     ADD_SUBJECT(new AddSubject()),
     //ADMIN_PAGE(new AdminRedirect()),
     USER_PAGE(new UserRedirect()),
@@ -29,7 +31,8 @@ public enum CommandList {
     SHOW_TUTORS_TESTS(new ShowTutorsTests()),
     //REDIRECT_ADMIN_PAGE(new AdminRedirect()),
     LOGOUT(new Logout()),
-    SHOW_PROFILE(new ShowProfile());
+    SHOW_PROFILE(new ShowProfile()),
+    SHOW_STATISTIC(new ShowStatistic());
 
     private CommandList(Command command) {
         this.command = command;
